@@ -55,6 +55,13 @@ This would involve modifying the `Parser` class to extract not only the position
   - This paper discusses the rating systems used in chess and how they may be affected by varying rating distributions. While it does not delve into the specifics of probability distributions of chess moves or positions, it could provide a starting point for understanding how probability distributions could be applied to chess.
   - *Di Fatta, G., Haworth, G., and Regan, K. (2009). Rating systems with potentially varying rating distributions. DOI: 10.1109/CIDM.2009.4938653*
 
+4. [Fast Evaluation of Sequence Pair in Block Placement by Longest Common Subsequence Computation](https://dl.acm.org/doi/10.1145/343647.343713)
+  - This paper presents a new approach to evaluate a sequence pair based on comparing longest common subsequence in a pair of weighted sequences. It presents a very simple and efficient algorithm to solve the sequence pair evaluation problem. This could provide valuable insights into the efficiency and potential optimizations of the LCS algorithm.
+  - *Xiaoping Tang, Ruiqi Tian, Martin D. F. Wong (2001). Fast evaluation of sequence pair in block placement by longest common subsequence computation. DOI: 10.1145/343647.343713*
+
+5. [A Space-Bounded Anytime Algorithm for the Multiple Longest Common Subsequence Problem](https://ieeexplore.ieee.org/document/6731533)
+  - This paper formulates the MLCS problem into a graph search problem and presents two space-efficient anytime MLCS algorithms. The algorithms use an iterative beam widening search strategy to reduce space usage during the iterative process of finding better solutions. This could provide valuable insights into space-efficient implementations of the LCS algorithm.
+  - *Jiaoyun Yang, Yun Xu, Yi Shang, Guoliang Chen (2014). A Space-Bounded Anytime Algorithm for the Multiple Longest Common Subsequence Problem. DOI: 10.1109/TKDE.2014.2304464*
 
 ## Acknowledgements
 

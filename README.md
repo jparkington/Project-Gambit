@@ -54,16 +54,10 @@ This would involve modifying the `Parser` class to extract not only the position
    - Discusses the design of a board game to teach algorithms to middle school students. Could provide insights into how to make the LCS algorithm more understandable and accessible for Project Gambit users.
 
 4. [Aligning Superhuman AI with Human Behavior: Chess as a Model System](https://dx.doi.org/10.1145/3394486.3403219)
-   - Discusses how AI systems approach problems differently from humans and how modeling the granular actions that constitute human behavior can help bridge this gap. Could provide valuable insights into how to align the LCS algorithm with human behavior in chess.
-
-5. [From Chess and Atari to StarCraft and Beyond: How Game AI is Driving the World of AI](https://dx.doi.org/10.1007/s13218-020-00647-w)
-   - Reviews the field of Game AI, which includes creating agents that can play a certain game, creating game content automatically, game analytics, and player modeling. Could provide a broader perspective on how the LCS algorithm fits intoHere are two additional papers that are more generally related to chess algorithms and game sequencing:
-
-1. [Aligning Superhuman AI with Human Behavior: Chess as a Model System](https://dx.doi.org/10.1145/3394486.3403219)
    - This paper discusses how AI systems approach problems differently from humans and how modeling the granular actions that constitute human behavior can help bridge this gap. It uses chess as a model system and introduces Maia, a customized version of AlphaZero trained on human chess games. This paper could provide valuable insights into how to align the LCS algorithm with human behavior in chess.
    - *Reid McIlroy-Young, S. Sen, J. Kleinberg, Ashton Anderson (2020). Aligning Superhuman AI with Human Behavior: Chess as a Model System. DOI: 10.1145/3394486.3403219*
 
-2. [From Chess and Atari to StarCraft and Beyond: How Game AI is Driving the World of AI](https://dx.doi.org/10.1007/s13218-020-00647-w)
+5. [From Chess and Atari to StarCraft and Beyond: How Game AI is Driving the World of AI](https://dx.doi.org/10.1007/s13218-020-00647-w)
    - This paper reviews the field of Game AI, which includes creating agents that can play a certain game, creating game content automatically, game analytics, and player modeling. It discusses how advances in Game AI are starting to be extended to areas outside of games. This paper could provide a broader perspective on how the LCS algorithm fits into the larger world of Game AI.
    - *S. Risi, M. Preuss (2020). From Chess and Atari to StarCraft and Beyond: How Game AI is Driving the World of AI. DOI: 10.1007/s13218-020-00647-w*
 

@@ -16,7 +16,7 @@ Project Gambit is a chess analytics research project that aims to optimize the L
 
 ## Introduction
 
-In chess, a gambit is a move in which a player sacrifices material with the hope of achieving a resulting advantageous position. Project Gambit embodies this idea, sacrificing the straightforward approach of the LCS algorithm for a more complex, but hopefully more effective, probabilistic approach. By integrating concepts from linear algebra, we aim to enhance the performance and accuracy of the LCS algorithm, providing users with more insightful and meaningful analysis of their chess games as its database scales.
+In chess, a gambit is a move in which a player sacrifices material with the hope of achieving a resulting advantageous position. Project Gambit embodies this idea, sacrificing the straightforward approach of the LCS algorithm for a more complex, but hopefully more effective, probabilistic approach. By integrating concepts from linear algebra, we aim to enhance the performance and accuracy of the LCS algorithm, providing users with more insightful and meaningful analysis of their chess games as our database of games scales.
 
 ## Research Topics
 

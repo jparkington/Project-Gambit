@@ -44,22 +44,17 @@ This would involve modifying the `Parser` class to extract not only the position
 
 ## Academic Papers
 
-1. [Combinatorial Game Theory](https://dx.doi.org/10.1515/9783110755411)
+1. [Combinatorial Game Theory](https://www.degruyter.com/document/doi/10.1515/9783110755411/html)
    - Discusses the application of game theory, including Markov Chains, in various board games. Could provide valuable insights into how to model game state transitions in chess.
 
-2. [Tabletop Board Game Elements and Gamification Interventions for Health Behavior Change: Realist Review and Proposal of a Game Design Framework](https://dx.doi.org/10.2196/23302)
-   - Discusses the design of tabletop games and how different elements can influence player behavior. Could provide insights into how to optimize the LCS algorithm to guide player behavior in Project Gambit.
-
-3. [SplashCode - A Board Game for Learning an Understanding of Algorithms in Middle School](https://dx.doi.org/10.15388/infedu.2019.12)
-   - Discusses the design of a board game to teach algorithms to middle school students. Could provide insights into how to make the LCS algorithm more understandable and accessible for Project Gambit users.
-
-4. [Aligning Superhuman AI with Human Behavior: Chess as a Model System](https://dx.doi.org/10.1145/3394486.3403219)
+2. [Aligning Superhuman AI with Human Behavior: Chess as a Model System](https://dl.acm.org/doi/10.1145/3394486.3403219)
    - This paper discusses how AI systems approach problems differently from humans and how modeling the granular actions that constitute human behavior can help bridge this gap. It uses chess as a model system and introduces Maia, a customized version of AlphaZero trained on human chess games. This paper could provide valuable insights into how to align the LCS algorithm with human behavior in chess.
    - *Reid McIlroy-Young, S. Sen, J. Kleinberg, Ashton Anderson (2020). Aligning Superhuman AI with Human Behavior: Chess as a Model System. DOI: 10.1145/3394486.3403219*
 
-5. [From Chess and Atari to StarCraft and Beyond: How Game AI is Driving the World of AI](https://dx.doi.org/10.1007/s13218-020-00647-w)
-   - This paper reviews the field of Game AI, which includes creating agents that can play a certain game, creating game content automatically, game analytics, and player modeling. It discusses how advances in Game AI are starting to be extended to areas outside of games. This paper could provide a broader perspective on how the LCS algorithm fits into the larger world of Game AI.
-   - *S. Risi, M. Preuss (2020). From Chess and Atari to StarCraft and Beyond: How Game AI is Driving the World of AI. DOI: 10.1007/s13218-020-00647-w*
+3. [Skill Rating by Bayesian Inference](https://www.researchgate.net/publication/224453252_Skill_Rating_by_Bayesian_Inference)
+  - This paper discusses the rating systems used in chess and how they may be affected by varying rating distributions. While it does not delve into the specifics of probability distributions of chess moves or positions, it could provide a starting point for understanding how probability distributions could be applied to chess.
+  - *Di Fatta, G., Haworth, G., and Regan, K. (2009). Rating systems with potentially varying rating distributions. DOI: 10.1109/CIDM.2009.4938653*
+
 
 ## Acknowledgements
 

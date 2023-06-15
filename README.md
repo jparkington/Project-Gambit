@@ -58,6 +58,7 @@ This would involve modifying the `Parser` class to extract not only the position
 
 4. [Fast Evaluation of Sequence Pair in Block Placement by Longest Common Subsequence Computation](https://dl.acm.org/doi/10.1145/343647.343713)
      - This paper presents a new approach to evaluate a sequence pair based on comparing longest common subsequence in a pair of weighted sequences. It presents a very simple and efficient algorithm to solve the sequence pair evaluation problem. This could provide valuable insights into the efficiency and potential optimizations of the LCS algorithm.
+     - The idea of pairing is an interesting, approachable optimization for chess specifically, since moves are comprised of 2 ply (a white move and a black move)
      - *Xiaoping Tang, Ruiqi Tian, Martin D. F. Wong (2001). Fast evaluation of sequence pair in block placement by longest common subsequence computation. DOI: 10.1145/343647.343713*
 
 5. [A Space-Bounded Anytime Algorithm for the Multiple Longest Common Subsequence Problem](https://ieeexplore.ieee.org/document/6731533)

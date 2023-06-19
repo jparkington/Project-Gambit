@@ -16,17 +16,23 @@ Project Gambit is a chess analytics research project that aims to optimize the L
 
 ## Introduction
 
-In chess, a gambit is a move in which a player sacrifices material with the hope of achieving a resulting advantageous position. Project Gambit embodies this idea, sacrificing the straightforward approach of the LCS algorithm for a more complex, but hopefully more effective, probabilistic approach. By integrating concepts from linear algebra, we aim to enhance the performance and accuracy of the LCS algorithm, providing users with more insightful and meaningful analysis of their chess games as our database of games scales.
+In the world of chess, a game steeped in strategy and intellect, the rise of technology has opened new avenues for learning and competition. Inspired by this technological revolution, Project Scotch, a passion project from our CS5001 class at the Roux Institute, was born. It offers users the ability to compare their games to a database of Grandmaster-level games, thereby learning stronger continuities and improving their gameplay. However, as with any technology, there is always room for improvement and optimization.
+
+The Longest Common Sequence (LCS) algorithm implemented in Project Scotch is a dynamic programming approach, which has a time complexity of $O\mathcal{O}(n ⋅ m)$, where $n$ and $m$ are the lengths of the two input sequences. This means that as the size of the sequences increases, the time taken by the algorithm grows quadratically. In the context of Project Scotch, where the tool is comparing a user's game to a database of over 7 million chess positions from professional tournament games, the sequences being compared could be quite large, leading to a significant computational cost.
+
+While the Cython implementation of the algorithm is designed to improve performance by reducing Python's overhead, it doesn't change the underlying time complexity of the algorithm. Therefore, for large sequences, the LCS calculation can still be a bottleneck. Moreover, the LCS algorithm in its current form doesn't take advantage of the specific structure of the data. In the context of chess games, there could be repeated patterns or sequences that could be exploited to speed up the comparison process. A more sophisticated search algorithm that can quickly identify and match these patterns could potentially improve performance.
+
+This is the inspiration for the idea of Project Gambit. In chess, a gambit is a move in which a player sacrifices material with the hope of achieving a resulting advantageous position. Project Gambit embodies this idea, sacrificing the straightforward approach of the LCS algorithm for a more complex, but hopefully more effective, probabilistic approach. By integrating concepts from linear algebra, we aim to enhance the performance and accuracy of the existing implementation, providing users with more insightful and meaningful analysis of their chess games as our database of games scales.
+
+At the very least, we hope to leave this research with an understanding of how long sequences can be traversed and returned with some of the advanced algorithms below, with the stretch goal of creating something in Python that results in a more efficient runtime for Project Scotch.
 
 ## Research Topics
 
 ### Optimization of the LCS Algorithm
 
-The LCS algorithm in Project Scotch is implemented in Cython for performance reasons. However, there might be further optimizations possible using Linear Algebra. 
+The quadratic implementation of the LCS algorithm in Project Scotch can lead to a significant computational cost when dealing with large sequences, such as those found in our database of Grandmaster-level games.
 
-One possibility may be to represent the sequences of positions as vectors and the LCS calculation as a matrix operation. This would involve modifying the `Position` class to include a vector representation of the position and the `Matcher` class to include a matrix representation of the LCS calculation. 
-
-Another more applicable possibility is to use a heuristic to guide the LCS algorithm. This heuristic could be based on the transition probabilities in the Markov chain, favoring sequences of positions that are more likely according to the Markov chain.
+One potential optimization could involve representing the sequences of positions as vectors and the LCS calculation as a matrix operation. This would require modifying the `Position` class in Project Scotch to include a vector representation of the position and the Matcher class to include a matrix representation of the LCS calculation.
 
 ### Markov Chains for Game State Transitions
 
@@ -38,7 +44,9 @@ The transition probabilities could then be calculated based on the frequency of 
 
 ### Probability Distributions for Chess Moves
 
-In Project Scotch, the `Position` class includes information about the legal moves from a position. This information could be used to construct a probability distribution for the moves from each position, based on the frequency of each move in the database of Grandmaster-level games. 
+Probability distributions offer a potential solution to the scaling problem. Instead of blindly traversing the entire sequence, we could use probability distributions to guide the traversal process, focusing on the most promising parts of the sequence first. This approach is akin to a probabilistic search algorithm, which uses probability information to guide the search process.
+
+In Project Scotch, the `Position` class includes information about the legal moves from a position. This information could be used to construct a probability distribution for the moves from each position, based on the frequency of each move in the database of Grandmaster-level games.
 
 This would involve modifying the `Parser` class to extract not only the positions but also the moves from the PGN files. The `Matcher` class could then be modified to use these probability distributions to guide the LCS algorithm, favoring sequences of positions that are more likely according to the probability distributions.
 

@@ -54,4 +54,4 @@ This project is being developed by:
 - Joseph Nelson Farrell
 - James Parkington
 
-Their work was shaped under the supervision of both Professor Weston Viles and Professor Lindsay Jamieson during class 5020 - Linear Algebra at the Roux Institute of Northeastern University.
+Their work was shaped under the supervision of both [Professor Weston Viles](https://roux.northeastern.edu/people/weston-viles/) and [Professor Lindsay Jamieson](https://roux.northeastern.edu/people/lindsay-jamieson/) during class *5020 - Linear Algebra* at the **Roux Institute of Northeastern University**. 

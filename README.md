@@ -86,11 +86,7 @@ Here are some academic papers that could provide valuable insights into the new 
    
    This paper presents a novel approach to learning and decision making in the game of chess. The authors use a deep learning model to learn chess board evaluations and move generation, which could provide insights into both how to structure the learning process for our chess positions and how to generate moves based on the learned evaluations.
 
-2. Helmstetter, B., & Cazenave, T. (2006). [A Graph-Based Approach for Chess Endgames](https://link.springer.com/chapter/10.1007/11874683_26). 
-   
-   This paper presents a graph-based approach to solving chess endgames. The authors use a directed acyclic graph to represent the game states and apply graph algorithms to find the best moves, which we could use to understand how to structure the chess positions as a graph and how to traverse this graph to find the best moves.
-
-3. Kreutzer, S. (2006). [DAG-Width and Parity Games](http://web.comlab.ox.ac.uk/people/Stephan.Kreutzer/Publications/stacs06.pdf). 
+2. Kreutzer, S. (2006). [DAG-Width and Parity Games](http://web.comlab.ox.ac.uk/people/Stephan.Kreutzer/Publications/stacs06.pdf). 
    
    This paper discusses the use of Directed Acyclic Graphs (DAGs) in the context of parity games, which could be applicable to the tree-like structure of chess positions.
 

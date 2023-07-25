@@ -43,7 +43,7 @@
 <br>
 
 ## Ideas from 7/20
-- Centipawn values for each user position need to be evaluated first, in order to find the "interesting" ones
+- Centipawn values for each user position need to be evaluated first, in order to find the "interesting" ones (or nodes worth performing the tree search with a loss function on)
 - **Question to Explore**: Is it more valuable to pick the $n$ "most interesting" positions and perform the pathfinding algorithm on those $n$ nodes, or to run the entire tree first, or alternatively run the tree on all of the nodes? What's the tradeoff of the time complexity across these 3 options?
 - **Question to Explore**: How do we determine the proper depth to apply to the search (exploration vs. exploitation)? How do we prevent the algorithm from stopping the search too early (e.g. there's an incredibly valuable node 4 positions down the line that we failed to look at, because we thought our current node was "insightful")?
 - $L(\theta) = (x_0 - x_1)^2 + \cdots + c_n$

@@ -25,7 +25,7 @@ Project Gambit is a chess analytics research project that aims to enhance the le
 
 ## Introduction
 
-In the world of chess, a game steeped in strategy and intellect, the rise of technology has opened new avenues for learning and competition. Inspired by this technological revolution, Project Scotch, a passion project from our CS5001 class at the Roux Institute, was born. It offers users the ability to compare their games to a database of Grandmaster-level games, thereby learning stronger continuities and improving their gameplay. However, as with any technology, there is always room for improvement and optimization.
+In the world of chess, a game steeped in strategy and intellect, the rise of technology has opened new avenues for learning and competition. Inspired by this technological revolution, [**Project Scotch**](https://github.com/jparkington/Project-Scotch), a passion project from our CS5001 class at the Roux Institute, was born. It offers users the ability to compare their games to a database of Grandmaster-level games, thereby learning stronger continuities and improving their gameplay. However, as with any technology, there is always room for improvement and optimization.
 
 
 ## New Direction

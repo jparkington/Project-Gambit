@@ -6,12 +6,12 @@ Modified Date: 7/9/2023
 File containing the Utility class for data storage and retrieval.
 '''
 
+from   tkinter import filedialog
+from   typing import List, Optional, Union
 import os
 import sys
-import pandas as pd
+import pandas          as pd
 import pyarrow.parquet as pq
-from tkinter import filedialog
-from typing import List, Optional, Union
 
 class Utility:
     '''

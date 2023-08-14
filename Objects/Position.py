@@ -7,8 +7,8 @@ File containing the implementation of the Position class for representing
 chess positions in a chess game analysis tool.
 '''
 
-from   typing    import *
-import numpy     as np
+from   typing import *
+import numpy  as np
 import chess
 
 class Position:

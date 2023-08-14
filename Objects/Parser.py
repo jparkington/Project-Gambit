@@ -91,6 +91,7 @@ class Parser:
             positions.append(Position(move_number   = move_number, 
                                       move_notation = move_notation, 
                                       white_turn    = board.turn,
+                                      centipawn     = Position.evaluate_position(board),
                                       bitboards     = Position.get_bitboards(board)))
 
         positions[-1].final_move = True

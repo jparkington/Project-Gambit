@@ -1,15 +1,18 @@
 '''
 Author:        James Parkington
 Created Date:  3/26/2023
-Modified Date: 7/8/2023
+Modified Date: 9/14/2023
 
 File containing the implementation of the Position class for representing 
 chess positions in a chess game analysis tool.
 '''
 
-from   typing import *
-import numpy  as np
+from   stockfish import Stockfish
+from   typing    import *
 import chess
+import numpy     as np
+import os
+
 
 class Position:
     '''
@@ -36,6 +39,7 @@ class Position:
                  move_notation : str  = "Game Start", 
                  final_move    : bool = False,
                  white_turn    : bool = True, 
+                 centipawn     : int  = None,
                  bitboards     : Optional[Dict[str, int]] = {'♙' : 0b0000000000000000000000000000000000000000000000001111111100000000,
                                                              '♖' : 0b0000000000000000000000000000000000000000000000000000000010000001,
                                                              '♘' : 0b0000000000000000000000000000000000000000000000000000000001000010,
@@ -53,6 +57,7 @@ class Position:
         self.move_notation = move_notation
         self.final_move    = final_move
         self.white_turn    = white_turn
+        self.centipawn     = centipawn
         self.bitboards     = bitboards
         
     @property
@@ -91,6 +96,24 @@ class Position:
                 bitboards[piece_symbol] |= 1 << square
 
         return bitboards
+    
+    @staticmethod
+    def evaluate_position(board          : chess.Board,
+                          stockfish_path : str = "../../Engines/Stockfish", 
+                          depth          : int = 10) -> int:
+        '''
+        Evaluate the given chess position using the Stockfish engine.
+
+        Returns:
+            int: The centipawn evaluation of the given position.
+        '''
+        
+        stockfish = Stockfish(path  = os.path.abspath(os.path.join(os.path.dirname(__file__), stockfish_path)), 
+                              depth = depth)
+        
+        stockfish.set_fen_position(board.fen())
+
+        return stockfish.get_evaluation()['value']
 
     def apply_move(self, move: Tuple[str, int, int]):
         '''

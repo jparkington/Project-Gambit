@@ -85,7 +85,7 @@ def evaluate_chess_games(stockfish_path         : str,
         evaluations = []
 
         with ProcessPoolExecutor() as executor:
-            tasks = [executor.submit(evaluate_game, (game_id, pgn, stockfish_path, depth)) for game_id, pgn in df[['game_id', 'pgn']].itertuples(index=False)]
+            tasks = [executor.submit(evaluate_game, game_id, pgn, stockfish_path, depth) for game_id, pgn in df[['game_id', 'pgn']].itertuples(index=False)]
             for task in tasks:
                 evaluations.extend(task.result())
 

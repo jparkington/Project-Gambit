@@ -40,7 +40,7 @@ class Dagger:
         It guides the search towards the optimal chess positions and avoids overfitting.
 
         Loss Function:
-            L(pred) = (pred - user_centipawn_value)² / depth + λ * ||pred||²
+            L(pred) = Σ(pred - user_centipawn_value)² / depth + λ * ||pred||²
 
         Where:
         - pred represents the average predicted centipawn value for the next depth moves.
@@ -99,12 +99,16 @@ class Dagger:
         Returns:
             board_sum : The bitboard sum of the best learning moment.
             centipawn : The centipawn value of the best learning moment.
+
+        As a proof-of-concept, this function currently only looks through the first 12 ply of the sample game. This is because the
+        `stockfish.get_evaluation()` function comingles centipawn value and "moves from checkmate", which is resulting in 
+        inordinately large derivative values for some positions in the array.
         '''
 
-        net_changes      = np.abs(np.diff(np.array([position.centipawn if position.centipawn else 0 for position in self.user_parser.positions])))
+        net_changes      = np.abs(np.diff(np.array([position.centipawn if position.centipawn else 0 for position in self.user_parser.positions[:12]])))
         best_index       = np.argmax(net_changes)
 
-        return self.user_parser.get_positions()[best_index].bitboard_integers, \
+        return self.user_parser.positions[best_index].bitboard_integers, \
                self.user_parser.positions[best_index].centipawn,               \
                best_index
 
@@ -134,42 +138,74 @@ class Dagger:
         penalizing large coefficients to prevent overfitting.
         '''
 
-        pred_values = [row[f'centipawn_evaluation_{i}'] for i in range(depth)]
+        start_idx   = row.name
+        pred_values = self.games.loc[start_idx : start_idx + depth - 1, 'centipawn_evaluation']
         pred        = np.mean(pred_values) * (1 if self.user_preference != "black" else -1)
 
         mse_term = ((pred - self.user_centipawn) ** 2)
         reg_term = self.lambda_reg * (pred ** 2)
         return mse_term / depth + reg_term
 
+    # def dijkstra_search(self):
+    #     '''
+    #     Implements Dijkstra's algorithm to find the best match by traversing the graph of chess positions.
+    #     The search is guided by a loss function, and the result is stored in the result attribute.
+    #     '''
+
+    #     current_board_sum = self.user_board_sum
+    #     for i in range(5):
+    #         # Filter games based on current_board_sum
+    #         filtered_gamess = self.games[self.games['board_sum'] == current_board_sum]
+
+    #         # Calculate cost for each row using apply method
+    #         costs = filtered_gamess.apply(self.loss_function, axis = 1).values
+
+    #         # Create a heap (priority queue) based on the calculated cost
+    #         queue = [(cost, i) for i, cost in enumerate(costs)]
+    #         heapq.heapify(queue)
+    #         best_move = filtered_gamess.iloc[heapq.heappop(queue)[1]]
+
+    #         # Create a Parser object using the pgn field of the best_move
+    #         parser_obj = Parser(best_move['pgn'])
+    #         ply_index = best_move['ply']
+
+    #         # Store the Parser object and ply index for the move directly in self.results
+    #         self.results[i + 1] = {'parser': parser_obj, 'ply': ply_index}
+            
+    #         # Update current_board_sum for the next iteration
+    #         current_board_sum = self.games.iloc[best_move['ply'] + 1]['board_sum']
+
     def dijkstra_search(self):
         '''
         Implements Dijkstra's algorithm to find the best match by traversing the graph of chess positions.
         The search is guided by a loss function, and the result is stored in the result attribute.
         '''
-
         current_board_sum = self.user_board_sum
-        for i in range(5):
-            # Filter games based on current_board_sum
-            sorted_games = self.games[self.games['board_sum'] == current_board_sum]
 
-            # Calculate cost for each row using apply method
-            costs = sorted_games.apply(self.loss_function, axis = 1).values
+        for run in range(5):
+            filtered_games = self.games[self.games['board_sum'] == current_board_sum].reset_index(drop=True)
 
             # Create a heap (priority queue) based on the calculated cost
-            queue = [(cost, i) for i, cost in enumerate(costs)]
+            costs = filtered_games.apply(lambda row: self.loss_function(row), axis = 1)
+            queue = list(zip(costs, filtered_games.index))
             heapq.heapify(queue)
-            best_move = sorted_games.iloc[heapq.heappop(queue)[1]]
+
+            best_index = heapq.heappop(queue)[1]
+            best_move  = filtered_games.iloc[best_index]
 
             # Create a Parser object using the pgn field of the best_move
-            parser_obj = Parser(best_move['pgn'])
-            ply_index = best_move['ply']
+            parser_obj = Parser(best_move['pgn'], False)
+            ply_index  = best_move['ply']
 
             # Store the Parser object and ply index for the move directly in self.results
-            self.results[i + 1] = {'parser': parser_obj, 'ply': ply_index}
-            
+            self.results[run + 1] = {'parser': parser_obj, 'ply': ply_index}
+
             # Update current_board_sum for the next iteration
-            current_board_sum = self.games.iloc[best_move['ply'] + 1]['board_sum']
+            next_board_sum_row = self.games[(self.games['ply'] == best_move['ply'] + 1) & (self.games['game_id'] == best_move['game_id'])]
+            current_board_sum  = next_board_sum_row['board_sum'].iloc[0]
+
+        return self.results
 
     def __call__(self):
         self.dijkstra_search()
-        return self.index, self.results
+        return self.best_index, self.results

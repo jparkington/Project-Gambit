@@ -8,8 +8,8 @@ def main():
     files  = Utility()
     parser = Parser(files())
     dag    = Dagger(files, parser)()
-    # Navigator(parser, dag[0], dag[1])()
-    print(dag)
+    Navigator(dag[1][1]['parser'], dag[1][1]['parser'], [(0, 41), (0, 41)])()
+
 
 if __name__ == "__main__":
     main()

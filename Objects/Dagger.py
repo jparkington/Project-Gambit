@@ -9,29 +9,11 @@ chess positions in a chess game analysis tool.
 
 from   Parser    import *
 from   Utilities import *
-from   queue     import PriorityQueue
 from   typing    import *
+import heapq
 import numpy           as np
 import pandas          as pd
 import pyarrow.dataset as ds
-
-
-class PositionNode:
-    '''
-    A wrapper class for chess positions in the priority queue.
-    Allows comparison based on the calculated cost (loss function value) to prioritize positions in the search.
-
-    Attributes:
-        cost      (float) : The calculated cost (loss function value) for the chess position.
-        game_data (dict)  : A dictionary representing a chess game position from the dataset.
-    '''
-
-    def __init__(self, cost, game_data):
-        self.cost = cost
-        self.game_data = game_data
-
-    def __lt__(self, other):
-        return self.cost < other.cost
         
 class Dagger:
     '''
@@ -107,7 +89,7 @@ class Dagger:
         self.lambda_reg           = lambda_reg
         self.results              = {i + 1: {} for i in range(5)}
 
-        self.user_board_sum, self.user_centipawn_value, self.best_index = self.find_best_learning_moment()
+        self.user_board_sum, self.user_centipawn, self.best_index = self.find_best_learning_moment()
 
     def find_best_learning_moment(self) -> Tuple[int, int]:
         '''
@@ -115,16 +97,15 @@ class Dagger:
         The learning moment is characterized by the largest net change in centipawn value.
 
         Returns:
-            board_sum        : The bitboard sum of the best learning moment.
-            centipawn_value  : The centipawn value of the best learning moment.
+            board_sum : The bitboard sum of the best learning moment.
+            centipawn : The centipawn value of the best learning moment.
         '''
 
-        centipawn_values = np.array([position.centipawn_value for position in self.user_parser.positions])
-        net_changes      = np.abs(np.diff(centipawn_values))
+        net_changes      = np.abs(np.diff(np.array([position.centipawn if position.centipawn else 0 for position in self.user_parser.positions])))
         best_index       = np.argmax(net_changes)
 
-        return self.user_parser.positions[best_index].position.bitboard_integers, \
-               self.user_parser.positions[best_index].centipawn_value,            \
+        return self.user_parser.get_positions()[best_index].bitboard_integers, \
+               self.user_parser.positions[best_index].centipawn,               \
                best_index
 
     def read_entire_directory(self, storage_directory: str):
@@ -145,24 +126,18 @@ class Dagger:
         return table.to_pandas()
 
     def loss_function(self, 
-                      game_row : pd.Series,
-                      depth    : int = 10) -> float:
+                      row   : pd.Series,
+                      depth : int = 10) -> float:
         '''
         Defines a loss function based on ridge regression (L2 regularization).
         The function captures the difference between the predicted value and the actual value,
         penalizing large coefficients to prevent overfitting.
         '''
 
-        pred = 0
+        pred_values = [row[f'centipawn_evaluation_{i}'] for i in range(depth)]
+        pred        = np.mean(pred_values) * (1 if self.user_preference != "black" else -1)
 
-        for i in range(depth):
-            pred += self.games.iloc[game_row.name + i]['centipawn_evaluation']
-
-        if self.user_preference == "black":
-            pred = -pred
-
-        pred    /= depth
-        mse_term = ((pred - self.user_centipawn_value) ** 2)
+        mse_term = ((pred - self.user_centipawn) ** 2)
         reg_term = self.lambda_reg * (pred ** 2)
         return mse_term / depth + reg_term
 
@@ -174,21 +149,16 @@ class Dagger:
 
         current_board_sum = self.user_board_sum
         for i in range(5):
-            queue = PriorityQueue()
+            # Filter games based on current_board_sum
+            sorted_games = self.games[self.games['board_sum'] == current_board_sum]
 
-            # Prioritize games based on final_centipawn_value with positions that match current_board_sum
-            sorted_games = self.games[self.games['board_sum'] == current_board_sum] \
-                               .sort_values(by        = 'final_centipawn_value', 
-                                            ascending = (self.user_preference == "black"))
+            # Calculate cost for each row using apply method
+            costs = sorted_games.apply(self.loss_function, axis = 1).values
 
-            # Enqueue matching positions with the associated cost using the QueueItem wrapper class
-            for _, game_row in sorted_games.iterrows():
-                cost = self.loss_function(game_row)
-                queue.put(PositionNode(cost, game_row.to_dict()))
-
-            # Process the queue to find the best next move
-            best_item = queue.get()
-            best_move = best_item.game_data
+            # Create a heap (priority queue) based on the calculated cost
+            queue = [(cost, i) for i, cost in enumerate(costs)]
+            heapq.heapify(queue)
+            best_move = sorted_games.iloc[heapq.heappop(queue)[1]]
 
             # Create a Parser object using the pgn field of the best_move
             parser_obj = Parser(best_move['pgn'])
@@ -202,4 +172,4 @@ class Dagger:
 
     def __call__(self):
         self.dijkstra_search()
-        return self.results
+        return self.index, self.results

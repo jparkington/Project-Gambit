@@ -99,7 +99,7 @@ class Position:
     
     @staticmethod
     def evaluate_position(board          : chess.Board,
-                          stockfish_path : str = "../../Engines/Stockfish", 
+                          stockfish_path : str = "../Engines/Stockfish", 
                           depth          : int = 10) -> int:
         '''
         Evaluate the given chess position using the Stockfish engine.
@@ -112,8 +112,9 @@ class Position:
                               depth = depth)
         
         stockfish.set_fen_position(board.fen())
+        evaluation = stockfish.get_evaluation()['value']
 
-        return stockfish.get_evaluation()['value']
+        return evaluation if evaluation else 0
 
     def apply_move(self, move: Tuple[str, int, int]):
         '''

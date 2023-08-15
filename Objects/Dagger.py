@@ -11,8 +11,10 @@ from   Parser    import *
 from   Utilities import *
 from   queue     import PriorityQueue
 from   typing    import *
-import numpy     as np
-import pandas    as pd
+import numpy           as np
+import pandas          as pd
+import pyarrow.dataset as ds
+
 
 class PositionNode:
     '''
@@ -49,8 +51,6 @@ class Dagger:
         __init__        : Initializes the object with the given user input and games DataFrame.
         loss_function   : Defines a loss function using L2 regularization.
         dijkstra_search : Implements Dijkstra's algorithm to search through the games.
-        get_best_match  : Finds the best matching game based on the search results.
-        __str__         : Returns a formatted string describing the best matching game.
         __call__        : Executes the search and optionally prints the result.
 
     Mathematics Background:
@@ -96,18 +96,52 @@ class Dagger:
     '''
 
     def __init__(self, 
-                 games_df             : pd.DataFrame, 
-                 user_board_sum       : int, 
-                 user_centipawn_value : int, 
+                 storage_directory    : str, 
+                 user_parser          : Parser,
                  user_preference      : str   = "white",
                  lambda_reg           : float = 0.01):
 
-        self.games_df             = games_df
-        self.user_board_sum       = user_board_sum
-        self.user_centipawn_value = user_centipawn_value
+        self.games                = self.read_entire_directory(storage_directory)
+        self.user_parser          = user_parser
         self.user_preference      = user_preference
         self.lambda_reg           = lambda_reg
         self.results              = {i + 1: {} for i in range(5)}
+
+        self.user_board_sum, self.user_centipawn_value = self.find_best_learning_moment()
+
+    def find_best_learning_moment(self) -> Tuple[int, int]:
+        '''
+        Analyzes the Positions in the user-supplied Parser to find the best learning moment.
+        The learning moment is characterized by the largest net change in centipawn value.
+
+        Returns:
+            board_sum        : The bitboard sum of the best learning moment.
+            centipawn_value  : The centipawn value of the best learning moment.
+        '''
+
+        centipawn_values = np.array([position.centipawn_value for position in self.user_parser.positions])
+        net_changes      = np.abs(np.diff(centipawn_values))
+        best_index       = np.argmax(net_changes)
+
+        return self.user_parser.positions[best_index].position.bitboard_integers, \
+               self.user_parser.positions[best_index].centipawn_value
+
+    def read_entire_directory(self, storage_directory: str):
+        '''
+        Read the entire directory of Parquet files within the specified storage directory.
+
+        Arguments:
+            storage_directory : Directory containing the partitions.
+            columns           : List of columns to read (optional).
+
+        Returns:
+            DataFrame : Pandas DataFrame containing the data from all partitions.
+        '''
+
+        dataset = ds.dataset(storage_directory, format = "parquet")
+        table = dataset.to_table()
+
+        return table.to_pandas()
 
     def loss_function(self, 
                       game_row : pd.Series,
@@ -121,7 +155,7 @@ class Dagger:
         pred = 0
 
         for i in range(depth):
-            pred += self.games_df.iloc[game_row.name + i]['centipawn_evaluation']
+            pred += self.games.iloc[game_row.name + i]['centipawn_evaluation']
 
         if self.user_preference == "black":
             pred = -pred
@@ -142,7 +176,7 @@ class Dagger:
             queue = PriorityQueue()
 
             # Prioritize games based on final_centipawn_value with positions that match current_board_sum
-            sorted_games = self.games_df[self.games_df['board_sum'] == current_board_sum] \
+            sorted_games = self.games[self.games['board_sum'] == current_board_sum] \
                                .sort_values(by        = 'final_centipawn_value', 
                                             ascending = (self.user_preference == "black"))
 
@@ -163,7 +197,7 @@ class Dagger:
             self.results[i + 1] = {'parser': parser_obj, 'ply': ply_index}
             
             # Update current_board_sum for the next iteration
-            current_board_sum = self.games_df.iloc[best_move['ply'] + 1]['board_sum']
+            current_board_sum = self.games.iloc[best_move['ply'] + 1]['board_sum']
 
     def __call__(self):
         self.dijkstra_search()

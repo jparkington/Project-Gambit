@@ -1,10 +1,7 @@
 To-do:
-- Update Dagger to use Parser class
-- Pass the Parquey directory through the Utility class
 - Find a way to update alive_bar
 - Update Navigator to use the list of parsers
 - Add a centipawn plot to the bottom of Navigator's tkinter canvas
-- Add a home button to navigator (with a clever icon--maybe a pawn) that takes you back to your game at the given index
 - Turn cent_log_reg into a class with methods
 - Update README
 - Add citations to paper

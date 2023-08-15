@@ -107,7 +107,7 @@ class Dagger:
         self.lambda_reg           = lambda_reg
         self.results              = {i + 1: {} for i in range(5)}
 
-        self.user_board_sum, self.user_centipawn_value = self.find_best_learning_moment()
+        self.user_board_sum, self.user_centipawn_value, self.best_index = self.find_best_learning_moment()
 
     def find_best_learning_moment(self) -> Tuple[int, int]:
         '''
@@ -124,7 +124,8 @@ class Dagger:
         best_index       = np.argmax(net_changes)
 
         return self.user_parser.positions[best_index].position.bitboard_integers, \
-               self.user_parser.positions[best_index].centipawn_value
+               self.user_parser.positions[best_index].centipawn_value,            \
+               best_index
 
     def read_entire_directory(self, storage_directory: str):
         '''

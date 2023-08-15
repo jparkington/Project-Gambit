@@ -54,44 +54,6 @@ class Utility:
 
         return file_path
 
-    def from_parquet(self, 
-                     partition : int, 
-                     columns   : List[str] = None, 
-                     rows      : List[int] = None) -> pd.DataFrame:
-        '''
-        Reads data from a Parquet file into a DataFrame.
-
-        Args:
-            partition: The partition name to read from.
-            columns:   A list of column names to include in the DataFrame. If None, all columns are included.
-            rows:      A list of row indices to include in the DataFrame. If None, all rows are included.
-
-        Returns:
-            A DataFrame containing the data from the specified partition, columns, and rows.
-        '''
-
-        df = pd.read_parquet(os.path.join(self.pq_path, f"total_ply={partition}", 'data.parquet'), columns = columns)
-        if rows is not None: df = df.iloc[rows]
-
-        return df
-
-    def get_metadata(self) -> dict:
-        '''
-        Retrieves the metadata for each partition in the Parquet dataset.
-
-        The metadata for a partition includes the total_ply value and the number of records.
-
-        Returns:
-            A dictionary mapping total_ply values to the number of records in the corresponding partition, sorted in descending order by total_ply.
-        '''
-
-        partitions = pd.read_csv(os.path.join(self.pq_path, 'metadata.csv')).set_index('total_ply')['num_rows'].to_dict()
-
-        return dict(sorted(partitions.items(), 
-                           key     = lambda item: item[0], 
-                           reverse = True))
-
-
     def __call__(self) -> str:
         '''
         Returns the path to the PGN file. If the path has not been set yet, it attempts to obtain it either from the 

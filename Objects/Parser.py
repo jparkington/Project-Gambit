@@ -8,6 +8,7 @@ in a chess game analysis tool. The class makes use of the python-chess library f
 PGN files.
 '''
 
+
 from   Position import *
 from   typing   import *
 from   chess    import pgn

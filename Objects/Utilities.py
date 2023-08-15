@@ -31,8 +31,9 @@ class Utility:
     '''
 
     def __init__(self, pq_name: str = "Storage"):
+
         self.pq_name  = pq_name
-        self.pq_path  =  os.path.join(os.path.dirname(os.path.realpath(__file__)), f'../Games/{self.pq_name}')
+        self.pq_path  = os.path.join(os.path.dirname(os.path.realpath(__file__)), f'../Games/{self.pq_name}')
         self.pgn_path = None
 
     def open_file(self, file_type: str = 'PGN') -> str:

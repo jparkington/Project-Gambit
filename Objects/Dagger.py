@@ -96,12 +96,12 @@ class Dagger:
     '''
 
     def __init__(self, 
-                 storage              : str, 
-                 user_parser          : Parser,
-                 user_preference      : str   = "white",
-                 lambda_reg           : float = 0.01):
+                 storage         : Utility, 
+                 user_parser     : Parser,
+                 user_preference : str   = "white",
+                 lambda_reg      : float = 0.01):
 
-        self.games                = self.read_entire_directory(storage_directory)
+        self.games                = self.read_entire_directory(storage.pq_path)
         self.user_parser          = user_parser
         self.user_preference      = user_preference
         self.lambda_reg           = lambda_reg

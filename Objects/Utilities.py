@@ -7,7 +7,7 @@ File containing the Utility class for data storage and retrieval.
 '''
 
 from   tkinter import filedialog
-from   typing import List, Optional, Union
+from   typing  import *
 import os
 import sys
 import pandas          as pd

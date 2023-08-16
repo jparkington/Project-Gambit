@@ -99,13 +99,9 @@ class Dagger:
         Returns:
             board_sum : The bitboard sum of the best learning moment.
             centipawn : The centipawn value of the best learning moment.
-
-        As a proof-of-concept, this function currently only looks through the first 12 ply of the sample game. This is because the
-        `stockfish.get_evaluation()` function comingles centipawn value and "moves from checkmate", which is resulting in 
-        inordinately large derivative values for some positions in the array.
         '''
 
-        net_changes      = np.abs(np.diff(np.array([position.centipawn if position.centipawn else 0 for position in self.user_parser.positions[:12]])))
+        net_changes      = np.abs(np.diff(np.array([position.centipawn if position.centipawn else 0 for position in self.user_parser.positions])))
         best_index       = np.argmax(net_changes)
 
         return self.user_parser.positions[best_index].bitboard_integers, \

@@ -1,8 +1,6 @@
 To-do:
 - Update Navigator to use the list of parsers
 - Add a centipawn plot to the bottom of Navigator's tkinter canvas
-
-Nice-to-have (before presentation)
 - Turn cent_log_reg into a class with methods
 - Find a way to update alive_bar
 - Update README

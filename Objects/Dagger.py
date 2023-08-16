@@ -175,36 +175,60 @@ class Dagger:
     #         # Update current_board_sum for the next iteration
     #         current_board_sum = self.games.iloc[best_move['ply'] + 1]['board_sum']
 
+
+    import sys
+
     def dijkstra_search(self):
-        '''
-        Implements Dijkstra's algorithm to find the best match by traversing the graph of chess positions.
-        The search is guided by a loss function, and the result is stored in the result attribute.
-        '''
-        current_board_sum = self.user_board_sum
+        with open("log.txt", "w") as log_file:
+            sys.stdout = log_file
+            print(f"Current board sum: {self.user_board_sum}\n")
 
-        for run in range(5):
-            filtered_games = self.games[self.games['board_sum'] == current_board_sum].reset_index(drop=True)
+            final_moves = {}  # Dictionary to store final 5 moves
 
-            # Create a heap (priority queue) based on the calculated cost
-            costs = filtered_games.apply(lambda row: self.loss_function(row), axis = 1)
-            queue = list(zip(costs, filtered_games.index))
-            heapq.heapify(queue)
+            for run in range(5):
+                print(f"Run {run + 1} of 5:")
+                filtered_games = self.games[self.games['board_sum'] == self.user_board_sum].reset_index(drop=True)
 
-            best_index = heapq.heappop(queue)[1]
-            best_move  = filtered_games.iloc[best_index]
+                queue = []
+                for i, row in filtered_games.iterrows():
+                    cost = self.loss_function(row)
+                    queue.append((cost, i))
+                    print(f"Enqueuing row with index {i}: {row.to_dict()}") 
 
-            # Create a Parser object using the pgn field of the best_move
-            parser_obj = Parser(best_move['pgn'], False)
-            ply_index  = best_move['ply']
+                best_index = heapq.heappop(queue)[1]
+                print(f"  Top 5 elements in the queue before popping: {queue[:5]}")
+                
+                best_move = filtered_games.iloc[best_index]
+                print(f"  Dequeued row with index {best_index}: {best_move.to_dict()}")
+                print(f"  Best move details: ply={best_move['ply']}, board_sum={best_move['board_sum']}")
 
-            # Store the Parser object and ply index for the move directly in self.results
-            self.results[run + 1] = {'parser': parser_obj, 'ply': ply_index}
+                parser_obj = Parser(best_move['pgn'], False)
+                ply_index = best_move['ply']
+                self.results[run + 1] = {'parser': parser_obj, 'ply': ply_index}
 
-            # Update current_board_sum for the next iteration
-            next_board_sum_row = self.games[(self.games['ply'] == best_move['ply'] + 1) & (self.games['game_id'] == best_move['game_id'])]
-            current_board_sum  = next_board_sum_row['board_sum'].iloc[0]
+                next_ply = best_move['ply'] + 1
+                next_game_id = best_move['game_id']
+                next_board_sum_row = self.games[(self.games['ply'] == next_ply) & (self.games['game_id'] == next_game_id)]
+                self.user_board_sum = next_board_sum_row['board_sum'].iloc[0]
+                print(f"  Next ply details: index={next_ply}, board_sum={self.user_board_sum}")
+                print(f"  Top 5 elements in the queue after popping: {queue[:5]}\n")
 
-        return self.results
+                # Store the details in the final_moves dictionary
+                final_moves[run + 1] = {
+                    "ply": next_ply,
+                    "board_sum": self.user_board_sum,
+                    "centipawn_value": best_move['centipawn_evaluation'],
+                    "pgn": best_move['pgn']
+                }
+
+            print("\nFinal 5 moves selected:")
+            for i in range(1, 6):
+                move_details = final_moves[i]
+                print(f"  Move {i}:")
+                print(f"    Ply: {move_details['ply']}")
+                print(f"    Board Sum: {move_details['board_sum']}")
+                print(f"    Centipawn Value: {move_details['centipawn_value']}")
+                print(f"    PGN: {move_details['pgn']}\n")
 
     def __call__(self):
         self.dijkstra_search()

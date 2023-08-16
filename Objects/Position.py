@@ -1,12 +1,3 @@
-'''
-Author:        James Parkington
-Created Date:  3/26/2023
-Modified Date: 9/14/2023
-
-File containing the implementation of the Position class for representing 
-chess positions in a chess game analysis tool.
-'''
-
 from   stockfish import Stockfish
 from   typing    import *
 import chess

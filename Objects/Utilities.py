@@ -1,11 +1,3 @@
-'''
-Author:        James Parkington
-Created Date:  5/8/2023
-Modified Date: 7/9/2023
-
-File containing the Utility class for data storage and retrieval.
-'''
-
 from   tkinter import filedialog
 from   typing  import *
 import os

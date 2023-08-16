@@ -3,7 +3,6 @@ To-do:
 - Add a centipawn plot to the bottom of Navigator's tkinter canvas
 - Turn cent_log_reg into a class with methods
 - Find a way to update alive_bar
-- Add typing hints to Utilities.py
 - Update README
 - Add citations to paper
 - Rework intro, Nelson's changes, and conclusion

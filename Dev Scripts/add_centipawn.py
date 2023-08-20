@@ -6,6 +6,9 @@ import os
 from pathlib import Path
 from io import StringIO
 import gc
+import pyarrow.dataset as ds
+import pyarrow.parquet as pq
+import pyarrow as pa
 
 def evaluate_game(args):
     game_id, pgn, stockfish_path, depth = args
@@ -28,31 +31,42 @@ def _evaluate_game(game_id: int, pgn: str, stockfish: Stockfish) -> list:
         previous_evaluation = centipawn_evaluation
 
     return evaluations
+    
+def evaluate_chess_games(stockfish_path: str, depth: int, storage_directory: str):
+    # Create a dataset object
+    dataset = ds.dataset(storage_directory, format="parquet")
 
-def evaluate_chess_games(stockfish_path: str, depth: int, storage_directory: str, storage_test_directory: str, start_ply: int, end_ply: int):
-    os.makedirs(storage_test_directory, exist_ok=True)
-
-    for total_ply in range(end_ply, start_ply - 1, -1):
-        print(f"Processing total_ply={total_ply}...")
-        partition_path = Path(storage_directory, f"total_ply={total_ply}", "data.parquet")
-        if not partition_path.exists():
+    # Loop through fragments (partitions) in the dataset
+    for fragment in dataset.get_fragments():
+        print(f"Processing fragment at {fragment.path}...")
+        
+        # Read a fragment into a Table
+        table = fragment.to_table()
+        # Convert to pandas DataFrame
+        df = table.to_pandas()
+        
+        # Check if there are any NaN values in centipawn_evaluation
+        if df['centipawn_evaluation'].isnull().sum() == 0:
+            print("No NaN values found. Skipping...")
             continue
-
-        df = pd.read_parquet(partition_path)
+        
         evaluations = []
-
+        # Filter only the records with NaN centipawn_evaluation
+        df_null_eval = df[df['centipawn_evaluation'].isnull()]
         with ProcessPoolExecutor() as executor:
-            tasks = [executor.submit(evaluate_game, (game_id, pgn, stockfish_path, depth)) for game_id, pgn in df[['game_id', 'pgn']].itertuples(index=False)]
+            tasks = [executor.submit(evaluate_game, (game_id, pgn, stockfish_path, depth)) for game_id, pgn in df_null_eval[['game_id', 'pgn']].itertuples(index=False)]
             for task in tasks:
                 evaluations.extend(task.result())
-
+        
         # Create a DataFrame with the evaluations
         eval_df = pd.DataFrame(evaluations, columns=['game_id', 'ply', 'centipawn_evaluation', 'centipawn_diff'])
-        df = df.merge(eval_df, on=['game_id', 'ply'], how='left')
-        new_partition_dir = Path(storage_test_directory, f"total_ply={total_ply}")
-        os.makedirs(new_partition_dir, exist_ok=True)
-        new_partition_path = os.path.join(new_partition_dir, "data.parquet")
-        df.to_parquet(new_partition_path)
+        df.update(eval_df)
+        
+        # Convert back to pyarrow Table
+        updated_table = pa.Table.from_pandas(df)
+        
+        # Write the updated Table back to the fragment's location
+        pq.write_table(updated_table, fragment.path)
 
         # Explicitly trigger garbage collection
         gc.collect()
@@ -62,12 +76,9 @@ def evaluate_chess_games(stockfish_path: str, depth: int, storage_directory: str
 def main():
     stockfish_path = "Engines/Stockfish"
     depth = 10 # Reduced depth
-    storage_directory = "/Users/Macington/Documents/Projects/Project Scotch/Games/Storage"
-    storage_test_directory = "/Users/Macington/Documents/Projects/Project Gambit/Games/Storage"
-    start_ply = 47
-    end_ply = 289
+    storage_directory = "/Users/Macington/Documents/Projects/Project Gambit/Games/Storage"
 
-    evaluate_chess_games(stockfish_path, depth, storage_directory, storage_test_directory, start_ply, end_ply)
+    evaluate_chess_games(stockfish_path, depth, storage_directory)
 
 if __name__ == "__main__":
     main()

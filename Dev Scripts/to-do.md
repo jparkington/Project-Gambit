@@ -4,6 +4,6 @@ To-do:
 - Turn cent_log_reg into a class with methods
 - Find a way to update alive_bar
 - Update README
-- Add citations to paper
-- Rework intro, Nelson's changes, and conclusion
-- Incorporate time complexity section
+- Replace ply = NaN with 0 and then all ply = 0 centipawn_evaluation values should also be 0
+- Experiment with datasets and tables in pyarrow
+- Experiment with compression algorithms for faster reading and writing

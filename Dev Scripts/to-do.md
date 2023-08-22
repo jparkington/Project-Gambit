@@ -6,4 +6,4 @@ To-do:
 - Update README
 - Replace ply = NaN with 0 and then all ply = 0 centipawn_evaluation values should also be 0
 - Experiment with datasets and tables in pyarrow
-- Experiment with compression algorithms for faster reading and writing
+- Use brotli to avoid LFS for now

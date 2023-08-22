@@ -2,12 +2,10 @@ from stockfish import Stockfish
 import chess.pgn
 import numpy as np
 import pyarrow as pa
-import pyarrow.dataset as ds
 import pyarrow.parquet as pq
 from io import StringIO
 
-def evaluate_position(pgn: str, stockfish_path: str, depth: int) -> int:
-    stockfish = Stockfish(path=stockfish_path, depth=depth)
+def evaluate_position(stockfish, pgn: str, depth: int) -> int:
     pgn_io = StringIO(pgn)
     game = chess.pgn.read_game(pgn_io)
     board = game.board()
@@ -17,51 +15,60 @@ def evaluate_position(pgn: str, stockfish_path: str, depth: int) -> int:
     return stockfish.get_evaluation()['value']
 
 # Directory containing the Parquet files
-parquet_dir = "/Users/Macington/Documents/Projects/Project Gambit/Games/Storage"
+parquet_dir = "/Users/Macington/Documents/Projects/Project Gambit/Games/St"
 
-print("Reading all Parquet files in the directory...")
-# Read all Parquet files in the directory
-dataset = ds.dataset(parquet_dir, format="parquet")
-table = dataset.to_table()
-partitioning_scheme = dataset.partitioning
+# Read the Ply.parquet file
+ply_file_path = f"{parquet_dir}/ply.parquet"
+ply_table = pq.read_table(ply_file_path)
+ply_df = ply_table.to_pandas()
 
-# Convert to Pandas DataFrame
-df = table.to_pandas()
+# Read the PGNs.parquet file
+pgns_file_path = f"{parquet_dir}/pgn.parquet"
+pgns_table = pq.read_table(pgns_file_path)
+pgns_df = pgns_table.to_pandas()
 
-# Identify unique board_sum_in_context values where centipawn_evaluation is null
-print("Identifying unique board_sum_in_context values where centipawn_evaluation is null...")
-unique_board_sums = df[df['centipawn_evaluation'].isnull()]['board_sum_in_context'].unique()
+# Merge the pgn into ply based on 'pgn_id'
+ply_df = ply_df.merge(pgns_df[['pgn_id', 'pgn']], on='pgn_id', how='inner')
 
-print(f"Found {len(unique_board_sums)} unique board_sum_in_context values with missing centipawn_evaluation.")
+# Identify all unique progression_hash values and their corresponding pgn
+unique_progression_hashes = ply_df[['progression_hash', 'pgn']].drop_duplicates()
 
 # Stockfish configuration
 stockfish_path = "Engines/Stockfish"
 depth = 10
 
-# Chunk size
-chunk_size = 50
+# Initialize Stockfish instance
+stockfish = Stockfish(path=stockfish_path, depth=depth)
 
-# Evaluate each unique board_sum_in_context with Stockfish in chunks
-print("Evaluating missing centipawn_evaluation values using Stockfish...")
-for chunk_start in np.arange(0, len(unique_board_sums), chunk_size):
-    chunk_end = min(chunk_start + chunk_size, len(unique_board_sums))
+# Chunk size
+chunk_size = 5000
+
+# Evaluate each unique progression_hash with Stockfish in chunks
+for chunk_start in np.arange(0, len(unique_progression_hashes), chunk_size):
+    chunk_end = min(chunk_start + chunk_size, len(unique_progression_hashes))
     print(f"Processing chunk {chunk_start} to {chunk_end}...")
-    for board_sum_in_context in unique_board_sums[chunk_start:chunk_end]:
-        # Get the corresponding pgn
-        pgn = df[df['board_sum_in_context'] == board_sum_in_context]['pgn'].iloc[0]
-        # Evaluate the position
-        centipawn_evaluation = evaluate_position(pgn, stockfish_path, depth)
-        # Update the DataFrame safar
-        df.loc[df['board_sum_in_context'] == board_sum_in_context, 'centipawn_evaluation'] = centipawn_evaluation
+    progression_hash_to_centipawn = {}
+    for progression_hash in unique_progression_hashes[chunk_start:chunk_end]:
+        if progression_hash == 6548726006382385350:
+            centipawn = 0
+        else:
+            # Get the corresponding pgn
+            pgn = ply_df[ply_df['progression_hash'] == progression_hash]['pgn'].iloc[0]
+            # Evaluate the position
+            centipawn = evaluate_position(pgn, stockfish_path, depth)
+        progression_hash_to_centipawn[progression_hash] = centipawn
+
+    # Update the DataFrame using NumPy for efficiency
+    ply_df['centipawn'] = ply_df['progression_hash'].map(progression_hash_to_centipawn).fillna(ply_df['centipawn']).astype(np.float32)
 
     print("Converting the updated DataFrame back to a pyarrow Table...")
     # Convert the updated DataFrame back to a pyarrow Table
-    table = pa.Table.from_pandas(df)
+    ply_table = pa.Table.from_pandas(ply_df)
 
-    print("Writing the updated Table back to the Parquet directory...")
-    # Write the updated Table back to the Parquet directory
-    pq.write_to_dataset(table, root_path=parquet_dir, partitioning=partitioning_scheme)
+    print("Writing the updated Table back to the Parquet file...")
+    # Write the updated Table back to the Parquet file
+    pq.write_table(ply_table, ply_file_path)
 
     print(f"Chunk {chunk_start} to {chunk_end} processed!")
 
-print("Missing centipawn_evaluation values have been filled based on board_sum_in_context. Process completed!")
+print("Centipawn values have been filled based on progression_hash. Process completed!")

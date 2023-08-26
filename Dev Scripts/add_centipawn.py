@@ -38,7 +38,7 @@ stockfish_path = "Engines/Stockfish"
 depth = 10
 
 # Chunk size
-chunk_size = 5000
+chunk_size = 1000
 
 print("Processing rows where centipawn is null...")
 # Process rows where centipawn is null

@@ -5,70 +5,78 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from io import StringIO
 
-def evaluate_position(stockfish, pgn: str, depth: int) -> int:
-    pgn_io = StringIO(pgn)
-    game = chess.pgn.read_game(pgn_io)
-    board = game.board()
-    for move in game.mainline_moves():
-        board.push(move)
+print("Starting script...")
+
+def evaluate_position(board, stockfish_path, depth):
+    stockfish = Stockfish(path=stockfish_path, depth=depth)
     stockfish.set_fen_position(board.fen())
     return stockfish.get_evaluation()['value']
 
-# Directory containing the Parquet files
-parquet_dir = "/Users/Macington/Documents/Projects/Project Gambit/Games/St"
+print("Reading Parquet files...")
+# File paths
+ply_file_path = "/Users/Macington/Documents/Projects/Project Gambit/Games/ply.parquet"
+pgns_file_path = "/Users/Macington/Documents/Projects/Project Gambit/Games/pgn.parquet"
 
 # Read the Ply.parquet file
-ply_file_path = f"{parquet_dir}/ply.parquet"
 ply_table = pq.read_table(ply_file_path)
 ply_df = ply_table.to_pandas()
 
+# Add 'centipawn' column if not already present
+if 'centipawn' not in ply_df.columns:
+    ply_df['centipawn'] = np.nan
+
 # Read the PGNs.parquet file
-pgns_file_path = f"{parquet_dir}/pgn.parquet"
 pgns_table = pq.read_table(pgns_file_path)
 pgns_df = pgns_table.to_pandas()
 
 # Merge the pgn into ply based on 'pgn_id'
 ply_df = ply_df.merge(pgns_df[['pgn_id', 'pgn']], on='pgn_id', how='inner')
 
-# Identify all unique progression_hash values and their corresponding pgn
-unique_progression_hashes = ply_df[['progression_hash', 'pgn']].drop_duplicates()
-
+print("Configuring Stockfish...")
 # Stockfish configuration
 stockfish_path = "Engines/Stockfish"
 depth = 10
 
-# Initialize Stockfish instance
-stockfish = Stockfish(path=stockfish_path, depth=depth)
-
 # Chunk size
 chunk_size = 5000
 
-# Evaluate each unique progression_hash with Stockfish in chunks
-for chunk_start in np.arange(0, len(unique_progression_hashes), chunk_size):
-    chunk_end = min(chunk_start + chunk_size, len(unique_progression_hashes))
-    print(f"Processing chunk {chunk_start} to {chunk_end}...")
-    progression_hash_to_centipawn = {}
-    for progression_hash in unique_progression_hashes[chunk_start:chunk_end]:
-        if progression_hash == 6548726006382385350:
-            centipawn = 0
-        else:
-            # Get the corresponding pgn
-            pgn = ply_df[ply_df['progression_hash'] == progression_hash]['pgn'].iloc[0]
-            # Evaluate the position
-            centipawn = evaluate_position(pgn, stockfish_path, depth)
-        progression_hash_to_centipawn[progression_hash] = centipawn
+print("Processing rows where centipawn is null...")
+# Process rows where centipawn is null
+remaining_rows_df = ply_df[ply_df['centipawn'].isnull()]
 
-    # Update the DataFrame using NumPy for efficiency
-    ply_df['centipawn'] = ply_df['progression_hash'].map(progression_hash_to_centipawn).fillna(ply_df['centipawn']).astype(np.float32)
+# Process unique pgn values for remaining rows
+unique_pgns = remaining_rows_df['pgn_id'].unique()
+progression_hash_centipawn = {}  # To store centipawn values based on progression_hash
+for pgn_index, pgn_id in enumerate(unique_pgns):
+    print(f"Processing pgn_id {pgn_id} ({pgn_index + 1}/{len(unique_pgns)})...")
+    pgn_rows = ply_df[ply_df['pgn_id'] == pgn_id]
+    pgn_text = pgn_rows['pgn'].iloc[0]
 
-    print("Converting the updated DataFrame back to a pyarrow Table...")
-    # Convert the updated DataFrame back to a pyarrow Table
-    ply_table = pa.Table.from_pandas(ply_df)
+    # Read the PGN string and set up the game board
+    pgn_io = StringIO(pgn_text)
+    game = chess.pgn.read_game(pgn_io)
+    board = game.board()
 
-    print("Writing the updated Table back to the Parquet file...")
-    # Write the updated Table back to the Parquet file
-    pq.write_table(ply_table, ply_file_path)
+    # Iterate through the moves in the pgn
+    for ply, move in enumerate(game.mainline_moves()):
+        board.push(move)
+        progression_hash = pgn_rows[pgn_rows['ply'] == ply]['progression_hash'].iloc[0]
 
-    print(f"Chunk {chunk_start} to {chunk_end} processed!")
+        # Evaluate the centipawn value only if it's null and not evaluated before
+        if progression_hash not in progression_hash_centipawn:
+            centipawn = evaluate_position(board, stockfish_path, depth)
+            progression_hash_centipawn[progression_hash] = centipawn
 
-print("Centipawn values have been filled based on progression_hash. Process completed!")
+            # Copy down the centipawn value to all matching progression_hash values
+            ply_df.loc[ply_df['progression_hash'] == progression_hash, 'centipawn'] = centipawn
+
+    # Write updated chunk back to Parquet file if needed
+    if pgn_index % chunk_size == 0 and pgn_index > 0:
+        ply_table = pa.Table.from_pandas(ply_df)
+        pq.write_table(ply_table, ply_file_path)
+        print(f"Chunk up to {pgn_index} processed!")
+
+# Write final updated Parquet file
+ply_table = pa.Table.from_pandas(ply_df)
+pq.write_table(ply_table, ply_file_path)
+print("Processing completed!")
